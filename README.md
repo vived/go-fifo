@@ -1,3 +1,3 @@
-# go-fifo
-go 先进先出队列库
-基于channel开发，请在不同线程中使用put与get
+# go-queue
+基于go channel的缓冲队列接口与单元测试
+
