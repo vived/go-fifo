@@ -1,6 +1,4 @@
-package go_fifo
-
-//	"sync"
+package go_queue
 
 type Queue struct {
 	list *queueFifo

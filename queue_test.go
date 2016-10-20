@@ -1,4 +1,4 @@
-package go_fifo
+package go_queue
 
 import (
 	"fmt"
