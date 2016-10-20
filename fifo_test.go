@@ -9,15 +9,17 @@ import (
 func custom(q *Queue, id int, chexit chan int) {
 
 	timeout := false
+	max := 0
 
 	for !timeout {
 		select {
 
-		case <-time.After(time.Second * 5):
+		case <-time.After(time.Microsecond * 1000):
 			timeout = true
 			break
 		case v := <-q.GetChannel():
 			fmt.Printf("------id:%d custom:%d\n", id, v)
+			max += v.(int)
 			time.Sleep(time.Second)
 		}
 
@@ -27,7 +29,7 @@ func custom(q *Queue, id int, chexit chan int) {
 
 	}
 
-	chexit <- 0
+	chexit <- max
 }
 
 func product(q *Queue, id int, max int) {
@@ -36,6 +38,7 @@ func product(q *Queue, id int, max int) {
 		count++
 		fmt.Printf("id:%d product:%d\n", id, count)
 		q.Put(count)
+		sum += count
 		if count >= max {
 			break
 		}
@@ -43,10 +46,11 @@ func product(q *Queue, id int, max int) {
 }
 
 var count = 0
+var sum = 0
 
 func TestFifo(t *testing.T) {
 	q := NewFifoQueue(10)
-	threadcount := 8
+	threadcount := 4
 	chexit := make([]chan int, threadcount)
 	for i := 0; i < threadcount; i++ {
 		chexit[i] = make(chan int)
@@ -54,11 +58,17 @@ func TestFifo(t *testing.T) {
 	}
 
 	for i := 0; i < 1; i++ {
-		go product(q, i, 20)
+		go product(q, i, 22)
 	}
 
+	var custommax = 0
 	for i := 0; i < threadcount; i++ {
-		<-chexit[i]
+		custommax += <-chexit[i]
 	}
+
+	if sum != custommax {
+		t.Errorf("process:%d not equal to custom:%d", sum, custommax)
+	}
+	t.Logf("process:%d is equal to custom:%d", sum, custommax)
 
 }
